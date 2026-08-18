@@ -1,0 +1,47 @@
+<form [formGroup]="registerForm" (ngSubmit)="register()">
+
+    <input
+        type="text"
+        formControlName="username"
+        placeholder="Nazwa gracza">
+
+    <input
+        type="password"
+        formControlName="password"
+        placeholder="Hasło">
+
+    <input
+        type="password"
+        formControlName="password2"
+        placeholder="Powtórz hasło">
+
+    <input
+        type="email"
+        formControlName="email"
+        placeholder="Email">
+
+    <button type="submit">
+        Zarejestruj
+    </button>
+@if (registerForm.controls.username.touched &&
+     registerForm.controls.username.hasError('required')) {
+    <span>Nazwa użytkownika jest wymagana</span>
+}
+@if (registerForm.controls.email.touched &&
+     registerForm.controls.email.hasError('required')) {
+    <span>Email jest wymagany</span>
+}
+
+@if (registerForm.controls.email.touched &&
+     registerForm.controls.email.hasError('email')) {
+    <span>Niepoprawny adres email</span>
+}
+@if (registerForm.controls.password.touched &&
+     registerForm.controls.password.hasError('required')) {
+    <span>Hasło jest wymagane</span>
+}
+
+@if (registerForm.controls.password.hasError('minlength')) {
+    <span>Hasło musi mieć minimum 8 znaków</span>
+}
+</form>

@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: AuthService
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    database: POSTGRESQL
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url : jdbc:postgresql://auth-db:5432/auth_db
+    username: auth_user
+    password: auth_pass
+
+  kafka:
+    consumer:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS} # The consumer will connect to Kafka broker at this address
+      auto-offset-reset: earliest # Either earliest, latest or none.
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.example.UserService.kafka
+    producer:
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
+      acks: -1 # Either 0,1 or -1. -1 waits for all replicas to acknowledge
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: event:com.example.AuthService.kafka.events.Event
+
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+    org.hibernate.orm.jdbc.bind: trace
+
+
+auth:
+  secret-key: ${SECRET_KEY}
+  exp: ${EXP}
+
+kafka:
+  users-topic: ${KAFKA_USERS_TOPIC}
+  users-group-id: ${KAFKA_GROUP_ID}

@@ -1,0 +1,35 @@
+<button type="button" (click)="addPlayer()">
+    Dodaj nowego gracza
+</button>
+
+<form [formGroup]="formPlayers">
+    <div formArrayName="players">
+        @for(control of players.controls; track $index) {
+            <input
+                type="text"
+                [formControlName]="$index"
+                placeholder="Nazwa gracza">
+        }
+    </div>
+</form>
+<button (click)="startGame()">
+    Utwórz grę
+</button>
+<button type="button" (click)="startRound()">zacznij runde</button>
+<p>Runda: {{ roundIdS() }}</p>
+
+<form [formGroup]="formDrawAmount">
+            <input
+            id="amount"
+            type="number"
+            min="1"
+            formControlName="amount">
+</form>
+
+<button type="button" (click)="draw()">dobierz karty</button>
+
+<div class="board">
+@for (card of cards(); track card.id) {
+  <app-card [card]="card"></app-card>
+}
+</div>

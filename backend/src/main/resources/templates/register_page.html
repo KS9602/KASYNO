@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration</title>
+</head>
+<body style="background-color: lightgray;">
+
+<p>This is a simple HTML webpage served by Spring Boot.</p>
+<form id="register_form">
+    <label for="firstName">First name:</label><br>
+    <input type="text" id="firstName" name="firstName"><br>
+    <label for="lastName">Last name:</label><br>
+    <input type="text" id="lastName" name="lastName">
+    <label for="email">Email:</label><br>
+    <input type="text" id="email" name="email">
+    <label for="password">Password 1:</label><br>
+    <input type="text" id="password1" name="password1">
+    <label for="password2">Password 2:</label><br>
+    <input type="text" id="password2" name="password2">
+    <input type="submit" value="Send Requestxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+</form>
+</body>
+    <script>
+
+
+        const form = document.querySelector("#register_form");
+
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            sendData()
+        })
+
+        async function sendData(){
+            const formData = new FormData(form)
+            var object = {};
+            formData.forEach((value, key) => object[key] = value);
+            var json = JSON.stringify(object);
+            try{
+                const response = await fetch("http://localhost:7777/users/register",{
+                method: "POST",
+                headers:{
+        'Content-Type': 'application/json'
+        },
+                body: json,
+                });
+                console.log(await response.json())
+            }
+            catch(e){
+                console.error(e)
+            }
+        }
+
+    </script>
+</body>
+</html>

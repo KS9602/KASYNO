@@ -1,0 +1,20 @@
+1. FLOW  authenticate
+
+
+
+
+2 Security Filter Chain - SecurityConfig
+
+    1. Klasa do ogarniania co ma byc dostepne dla uzytkownika zalogowanego i nie zalogowanego
+    dodajemy requestMatchers().permitAll() albo autenticated
+    2. do obiektu http dodajemy tez sessionManagment. to mowi springowi jak ma zajmowac sie kontekstem.
+    W naszym przypadku z jwt mowimy mu ze ma trzymac kontekst przez caly czas trwania requesta
+    2. w http podajemy authenticationProvider. Tu podajemy DAO do obslugi uzytkownika. W configu mamy metode ktora
+    buduje obiekt providera ktory podamy w tej metodzie http. Do providera musimy wlozyc serwis dziedziczacy po UserDetailsService.
+    Z kolei ten serwis musi miec nadpisana metode loadUserByUsername w ktorej zaczytamy z bazy uytkownika i zwrocimy obiekt uzyktkownika springowego
+    (nie nasza encje z bazy tylko uzytkownika springowego, ewentualnie takiego ktory po nim dziedeziczy).
+    
+    Providera mozemy potem uzyc jako beena importujac AuhenticateManager, i spring podstawi odpowiedni manager. Wydaje sie to nadmiarowe, bo 
+    on i tak odpala nasz serwis do autentykacji, ale chat mowi ze robi duzo pod spodem i jak sa inne metody logowania do pomaga
+
+    3. addFilterBefore. tu dodajemy nasz customwy filtr ktory odpala sie przed requestami i zczytuje czy jest token

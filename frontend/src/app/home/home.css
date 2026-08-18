@@ -1,0 +1,15 @@
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.home-body {
+  width: 100%;
+  height: 100%;
+  background-color: bisque;
+}
+.home-board{
+    width: 100%;
+  height: 100%;
+}

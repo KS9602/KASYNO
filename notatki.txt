@@ -1,0 +1,1 @@
+1. Lombok Value i Data - @Value oznacza rekord ktory jest niemutowalny a @Data ten mutowalny

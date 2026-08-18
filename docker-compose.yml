@@ -1,0 +1,203 @@
+
+services:
+
+  ######################## DATABASES
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: pnm_db
+      POSTGRES_USER: pnm
+      POSTGRES_PASSWORD: pnm
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: 
+      - backend_network
+
+
+  auth-db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_pass
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+    networks: 
+      - backend_network
+
+
+  game-db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: gs_db
+      POSTGRES_USER: gs_user
+      POSTGRES_PASSWORD: gs_pass
+    volumes:
+      - gs_data:/var/lib/postgresql/data
+    networks: 
+      - backend_network
+
+  user-db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: user_user
+      POSTGRES_PASSWORD: user_pass
+    volumes:
+      - user_data:/var/lib/postgresql/data
+    networks: 
+      - backend_network
+
+
+
+  ######################## SPRING SERVICES
+  backend:
+    build: ./backend
+    restart: always
+    depends_on:
+      db:
+        condition: service_started
+    environment:
+      DB_NAME: pnm_db
+      DB_USER: pnm
+      DB_PASSWORD: pnm
+      DB_HOST: db
+      DB_PORT: 5432
+    ports:
+      - "7778:8080"
+    networks: 
+      - backend_network
+
+
+  game-service:
+    build: ./GameService
+    ports:
+      - "7780:8080"
+    depends_on:
+      game-db:
+        condition: service_started
+    networks: 
+      - backend_network
+
+
+  api-gateway:
+    build: ./APIGateway
+    ports:
+      - "7777:8080"
+    environment:
+      SECRET_KEY: "5367566859703373367639792F423F452848284D6251655468576D5A71347437"
+      EXP: 3600000
+      iss: "auth-service"
+      aud: "api-gateway"
+    networks: 
+      - backend_network
+
+
+  auth-service:
+    build: ./AuthService
+    ports:
+      - "7779:8080"
+    environment:
+      SECRET_KEY: "5367566859703373367639792F423F452848284D6251655468576D5A71347437"
+      EXP: 3600000
+      KAFKA_USERS_TOPIC: users
+      KAFKA_GROUP_ID: kafka-tutorial-group
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      auth-db:
+        condition: service_started
+    networks: 
+      - backend_network
+
+  user-service:
+    build: ./UserService
+    ports:
+      - "7781:8080"
+    depends_on:
+      user-db:
+        condition: service_started
+      kafka:
+        condition: service_started
+    networks: 
+      - backend_network
+    environment:
+      KAFKA_USERS_TOPIC: users
+      KAFKA_GROUP_ID: kafka-tutorial-group
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+
+
+  ######################## OTHER
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    hostname: kafka
+    container_name: kafka
+    networks: 
+      - backend_network
+    ports:
+      - "9092:9092" # Maps Container Port 9092, default for Kafka client communication, to Host Port 9092
+      - "9093:9093" # Maps Container Port 9093, used for advertised listeners for external clients, to Host Port 9092
+    environment:
+      KAFKA_KRAFT_MODE: "true"  # Enables KRaft mode in Kafka.
+      KAFKA_PROCESS_ROLES: controller,broker  # Kafka acts as both broker and controller.
+      KAFKA_NODE_ID: 1  # A unique ID for this Kafka instance.
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"  # Defines who can vote in the controller quorum; part of KRaft. Format nodeId@host:controllerPort
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093 # PLAINTEXT is for client communication. CONTROLLER is for internal controller communication
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092 # Producers and Consumers will connect to this address
+      KAFKA_LOG_DIRS: /var/lib/kafka/data  # Path where Kafka stores its logs.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false" # Kafka will NOT automatically create a topic.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Since we’re running one broker, one replica is enough.
+      KAFKA_LOG_RETENTION_HOURS: 168  # Keep logs for 7 days.
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0  # No delay for consumer rebalancing.
+      CLUSTER_ID: "fQEKGPQsQtSJMUICvEYA9g"  # A unique ID for the Kafka cluster.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/var/lib/kafka/data  # Store Kafka logs on your local machine.
+
+
+
+  # nginx:
+  #   image: nginx:alpine
+
+
+        
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile.dev
+  #   ports:
+  #     - "5173:5173"
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+
+  # nginx:
+  #   image: nginx:1.25-alpine
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+  #     - frontend_dist:/usr/share/nginx/html
+
+    # depends_on:
+    #   - backend
+    #   - frontend-build
+
+volumes:
+  postgres_data:
+  auth_data:
+  gs_data:
+  user_data:
+  # frontend_dist:
+
+networks:
+  backend_network:
+    name: backend_network
