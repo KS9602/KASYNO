@@ -10,12 +10,14 @@ import { CreateUserRequest } from '../models/create-user-request'
 export class RegisterService {
   private http = inject(HttpClient);
   register(username: string, password: string, email: string): Observable<CreateUserResponse>{
+      console.log("QQQQQQQQQQQ")
       const body: CreateUserRequest = {
       username: username,
       password: password,
       email: email
     };
-    return this.http.post<CreateUserResponse>('http://localhost:7777/auth/register', body)
+          console.log("zzzzzzzz")
+    return this.http.post<CreateUserResponse>('/api/auth/register', body)
       .pipe(
         tap(r => console.log("Create user response: ", r)),
         catchError(e => {console.error("Create user Errror: ", e)
