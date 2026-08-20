@@ -32,6 +32,14 @@ spring:
       properties:
         spring.json.type.mapping: event:com.example.AuthService.kafka.events.Event
 
+  data:
+    redis:
+      database: ${REDIS_DB}
+      host: ${REDIS_HOST}
+      port: ${REDIST_PORT}
+      password: ${REDIS_PASS}
+      timeout: ${REDIS_TIMEOUT}
+
 
 logging:
   level:
@@ -44,7 +52,15 @@ logging:
 auth:
   secret-key: ${SECRET_KEY}
   exp: ${EXP}
+  exp-refresh: ${EXP_REFRESH}
+  iss: ${iss}
+  aud: ${aud}
 
 kafka:
   users-topic: ${KAFKA_USERS_TOPIC}
   users-group-id: ${KAFKA_GROUP_ID}
+
+
+server:
+  servlet:
+    context-path: /api

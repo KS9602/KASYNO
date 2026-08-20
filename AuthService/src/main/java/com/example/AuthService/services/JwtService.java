@@ -1,13 +1,16 @@
 package com.example.AuthService.services;
 
 import com.example.AuthService.configs.ConfigProperties;
+import com.example.AuthService.entities.RedisToken;
 import com.example.AuthService.enums.TokenType;
+import com.example.AuthService.repositories.TokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -20,10 +23,10 @@ import java.util.function.Function;
 
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class JwtService {
 
-    private final ConfigProperties  configProperties;
+    private final ConfigProperties configProperties;
 
     public String generateToken(String username, TokenType tokenType) {
         Map<String, Object> claims = new HashMap<>();
@@ -69,7 +72,7 @@ public class JwtService {
                 .getBody();
     }
 
-    private Boolean isTokenExpired(String token) {
+    public Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 

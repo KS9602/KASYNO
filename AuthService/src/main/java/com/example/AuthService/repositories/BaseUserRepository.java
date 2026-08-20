@@ -9,4 +9,6 @@ public interface BaseUserRepository extends JpaRepository<BaseUserModel, Long> {
 
     Optional<BaseUserModel> findByUsername(String username);
     Optional<BaseUserModel> findByEmail(String email);
+    boolean existsByUsername(String username);
+    boolean existsByEmail(String username);
 }
