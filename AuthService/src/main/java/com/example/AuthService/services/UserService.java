@@ -4,6 +4,7 @@ import com.example.AuthService.DTO.RegisterRequestDTO;
 import com.example.AuthService.entities.BaseUserModel;
 import com.example.AuthService.enums.EventType;
 import com.example.AuthService.enums.Topic;
+import com.example.AuthService.exceptions.UsernameAlreadyExistsException;
 import com.example.AuthService.kafka.events.CreateUserPayload;
 import com.example.AuthService.kafka.events.Event;
 import com.example.AuthService.kafka.KafkaProducer;
@@ -30,9 +31,15 @@ public class UserService {
 
     public void addUser(RegisterRequestDTO registerRequestDTO) {
         BaseUserModel baseUserModel = new BaseUserModel();
+        if (baseUserRepository.existsByUsername(registerRequestDTO.username())) {
+            throw new UsernameAlreadyExistsException("Username already exists");
+        }
+        if (baseUserRepository.existsByEmail(registerRequestDTO.email())) {
+            throw new UsernameAlreadyExistsException("Username already exists");
+        }
         baseUserModel.setUsername(registerRequestDTO.username());
         baseUserModel.setEmail(registerRequestDTO.email());
-        baseUserModel.setPassword(passwordEncoder.encode(baseUserModel.getPassword()));
+        baseUserModel.setPassword(passwordEncoder.encode(registerRequestDTO.password()));
         baseUserRepository.saveAndFlush(baseUserModel);
         publishAddUserEvent(baseUserModel);
     }

@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Date;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -31,6 +33,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        // TODO poukladac caly mechanizm
+
+        String path = request.getServletPath();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String username = null;
@@ -40,7 +48,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             username = jwtService.extractUsername(token);
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if(token != null && !jwtService.isTokenExpired(token)) {
+            return;     // todo redirect
+        }
+        if(authentication == null && path.startsWith("/api/auth/logout")) {
+            return;
+        }
+        if(authentication != null && path.startsWith("/api/auth/login")) {
+            return;
+        }
+
+
+        if (username != null && authentication == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             if (jwtService.validateToken(token, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -53,4 +72,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
+
+
+
+
 }
