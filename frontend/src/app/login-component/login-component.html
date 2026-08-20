@@ -1,1 +1,24 @@
-<p>login-component works!</p>
+<form [formGroup]="loginForm" (ngSubmit)="login()">
+
+    <input
+        type="text"
+        formControlName="username"
+        placeholder="Nazwa gracza">
+
+    <input
+        type="password"
+        formControlName="password"
+        placeholder="Hasło">
+
+    <button type="submit">
+        Zaloguj
+    </button>
+@if (loginForm.controls.username.touched &&
+     loginForm.controls.username.hasError('required')) {
+    <span>Nazwa użytkownika jest wymagana</span>
+}
+@if (loginForm.controls.password.touched &&
+     loginForm.controls.password.hasError('required')) {
+    <span>Hasło jest wymagane</span>
+}
+</form>
