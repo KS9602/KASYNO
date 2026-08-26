@@ -49,13 +49,6 @@ export class Board {
   gameIdS = signal<number | null>(null);
   roundIdS = signal<number | null>(null);
 
-tasuj(): void {
-  this.boardService.shuffle().subscribe({
-    next: cards => {
-      this.cards.set(cards);
-    }
-  });
-}
 
 startGame(): void{
   this.boardService.startGame(this.players.value  as string[]).subscribe({

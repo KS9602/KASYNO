@@ -53,6 +53,7 @@ auth:
   secret-key: ${SECRET_KEY}
   exp: ${EXP}
   exp-refresh: ${EXP_REFRESH}
+  exp-access: ${EXP_ACCESS}
   iss: ${iss}
   aud: ${aud}
 

@@ -77,7 +77,8 @@ services:
     environment:
       SECRET_KEY: "5367566859703373367639792F423F452848284D6251655468576D5A71347437"
       EXP: 3600000
-      EXP_REFRESH: 3600000
+      EXP_REFRESH: 60000
+      EXP_ACCESS: 20000
       iss: "auth-service"
       aud: "api-gateway"
       KAFKA_USERS_TOPIC: users
@@ -163,8 +164,6 @@ services:
     image: redis:latest 
     ports:
         - '6379:6379'
-    volumes:
-        - redis-data:/data
     restart: unless-stopped
     networks: 
       - backend_network
@@ -174,7 +173,6 @@ volumes:
   auth_data:
   gs_data:
   user_data:
-  redis-data:
 
 networks:
   backend_network:

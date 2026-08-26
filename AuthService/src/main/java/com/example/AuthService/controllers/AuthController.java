@@ -1,20 +1,23 @@
 package com.example.AuthService.controllers;
 
-import com.example.AuthService.DTO.LoginRequestDTO;
 import com.example.AuthService.DTO.AccessTokenDTO;
+import com.example.AuthService.DTO.LoginRequestDTO;
+import com.example.AuthService.DTO.RefreshTokenDTO;
 import com.example.AuthService.DTO.RegisterRequestDTO;
 import com.example.AuthService.enums.ResponseMessage;
-import com.example.AuthService.enums.TokenType;
 import com.example.AuthService.exceptions.UsernameAlreadyExistsException;
 import com.example.AuthService.services.AuthService;
+import com.example.AuthService.services.CookieService;
 import com.example.AuthService.services.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 
 
 @RestController
@@ -24,10 +27,13 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserService userService;
+    private final CookieService cookieService;
+    private final String accessTokenCookie = "access_token";
+    private final String refreshTokenCookie = "refresh_token";
 
 
     @PostMapping("/register")
-    public ResponseEntity<ResponseMessage> addNewUser(@RequestBody RegisterRequestDTO registerRequestDTO) {
+    public ResponseEntity<ResponseMessage> register(@RequestBody RegisterRequestDTO registerRequestDTO) {
         try {userService.addUser(registerRequestDTO);}
         catch (UsernameAlreadyExistsException e) {
             return new ResponseEntity<>(ResponseMessage.USER_EXISTS,  HttpStatus.BAD_REQUEST);
@@ -36,37 +42,56 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseMessage> authenticateAndGetToken(
+    public ResponseEntity<ResponseMessage> login(
             @RequestBody LoginRequestDTO loginRequestDTO,
             HttpServletResponse response
     ) {
-        String token = null;
+        HashMap<String,String> tokens = null;
         try{
-            token =  authService.generateToken(loginRequestDTO);
+            tokens = authService.login(loginRequestDTO);
         } catch (Exception e) {
             return new ResponseEntity<>(ResponseMessage.BAD_REQUEST, HttpStatus.BAD_REQUEST);
         }
-        response.addCookie(addTokenToCookie(token));
+        response.addCookie(cookieService.addTokenToCookie(tokens.get("accessToken"),accessTokenCookie,600));
+        response.addCookie(cookieService.addTokenToCookie(tokens.get("refreshToken"),refreshTokenCookie,3600));
         return new ResponseEntity<>(ResponseMessage.LOGGED_IN, HttpStatus.OK);
     }
 
     @GetMapping("/logout")
     public ResponseEntity<ResponseMessage> logout(
-            @CookieValue(value = "token", required = false) String token,
+            @CookieValue(name = refreshTokenCookie, required = false) String refreshToken,
             HttpServletResponse response
     ) {
-        if (token == null) {
-            return new ResponseEntity<>(ResponseMessage.LOGGED_OUT, HttpStatus.OK);
+        response.addCookie(new Cookie(accessTokenCookie, null));
+        response.addCookie(new Cookie(refreshTokenCookie, null));
+        if (refreshToken != null){
+            authService.logout(refreshToken);
         }
-        response.addCookie(new Cookie("token", null));
-        authService.logout(token);
         return new ResponseEntity<>(ResponseMessage.LOGGED_OUT, HttpStatus.OK);
     }
 
-    private Cookie addTokenToCookie (String token) {
-        Cookie cookie = new Cookie("token", token);
-        cookie.setMaxAge(3600);
-        cookie.setHttpOnly(true);
-        return cookie;
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ResponseMessage> refreshToken(
+            @CookieValue(name = refreshTokenCookie) String refreshToken,
+            HttpServletResponse response
+            ) {
+        String token = null;
+        try{
+            token = authService.generateAccessToken(refreshToken);
+        }
+        catch (RuntimeException e) {
+            return new ResponseEntity<>(ResponseMessage.FORBIDDEN, HttpStatus.FORBIDDEN);
+        }
+        response.addCookie(cookieService.addTokenToCookie(token,accessTokenCookie, 600));
+        return new ResponseEntity<>(ResponseMessage.REFRESHED, HttpStatus.OK);
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<Boolean> me() {
+        return ResponseEntity.ok(true);
+    }
+
+
+
 }

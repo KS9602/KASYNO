@@ -14,26 +14,12 @@ import { CardModel } from '../models/card-model'
 export class BoardService {
   private http = inject(HttpClient);
 
-  shuffle(): Observable<CardModel[]> {
-    return this.http
-      .get<CardModel[]>('http://localhost:7778/api/game/tasuj')
-      .pipe(
-        tap(cards => console.log('Pobrano karty:', cards)),
-
-        catchError(error => {
-          console.error('Błąd pobierania kart', error);
-
-          return throwError(() => error);
-        })
-      );
-  }
-
 
   startGame(players: string[]): Observable<CreateGameResponse>{
       const body: CreateGameRequest = {
       players: players
     };
-    return this.http.post<CreateGameResponse>('http://localhost:7780/poker/start-game', body)
+    return this.http.post<CreateGameResponse>('/api/poker/start-game', body)
       .pipe(
         tap(r => console.log("Start game response: ", r)),
         catchError(e => {console.error("Start game Errror: ", e)
@@ -46,7 +32,7 @@ export class BoardService {
     const body: StartRoundRequest = {
       gameId: gameId
     };
-    return this.http.post<StartRoundResponse>('http://localhost:7780/poker/start-round', body)
+    return this.http.post<StartRoundResponse>('/api/poker/start-round', body)
       .pipe(
         tap(r => console.log("Start round response: ", r)),
         catchError(e => {console.error("Start round error: ", e)
@@ -61,7 +47,7 @@ export class BoardService {
       roundId: roundId,
       amount: amount
     }
-          return this.http.post<CardModel[]>('http://localhost:7780/poker/draw', body)
+          return this.http.post<CardModel[]>('/api/poker/draw', body)
       .pipe(
         tap(r => console.log("Draw response: ", r)),
         catchError(e => {console.error("Draw error: ", e)

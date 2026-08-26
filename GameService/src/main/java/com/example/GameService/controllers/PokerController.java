@@ -16,7 +16,6 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/poker")
-@CrossOrigin("http://localhost:4200")
 @RequiredArgsConstructor
 public class PokerController {
 
@@ -38,5 +37,13 @@ public class PokerController {
     public ResponseEntity<List<CardDTO>> draw(@RequestBody DrawDTO drawDTO) throws DeckNotFoundException {
         List<CardDTO> pack = pokerEngine.getCards(drawDTO);
         return ResponseEntity.ok(pack);
+    }
+
+    @GetMapping("/xxxxx")
+    public ResponseEntity<List<CardDTO>> xxxxx() {
+        System.out.println("xxxxx");
+        System.out.println("xxxxx");
+        System.out.println("xxxxx");
+        return ResponseEntity.ok(null);
     }
 }
