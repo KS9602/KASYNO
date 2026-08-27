@@ -77,8 +77,8 @@ services:
     environment:
       SECRET_KEY: "5367566859703373367639792F423F452848284D6251655468576D5A71347437"
       EXP: 3600000
-      EXP_REFRESH: 60000
-      EXP_ACCESS: 20000
+      EXP_REFRESH: 360000
+      EXP_ACCESS: 30000
       iss: "auth-service"
       aud: "api-gateway"
       KAFKA_USERS_TOPIC: users

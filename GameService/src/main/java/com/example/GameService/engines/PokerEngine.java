@@ -31,9 +31,10 @@ public class PokerEngine  {
 
     private final Random random = new Random();
 
-    public Long startGame(StartGameDTO startGameDTO) {
+    public StartGameDTO startGame(StartGameDTO startGameDTO) {
         Long gameId = gameService.createGame(startGameDTO);
-        return gameId;
+        startGameDTO.setGameId(gameId);
+        return startGameDTO;
     }
 
     public StartRoundDTO startRound(StartRoundDTO startRoundDTO){

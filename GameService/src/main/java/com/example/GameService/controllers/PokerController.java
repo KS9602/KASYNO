@@ -23,9 +23,8 @@ public class PokerController {
 
     @PostMapping("/start-game")
     public ResponseEntity<StartGameDTO> start(@RequestBody StartGameDTO startGameDTO) {
-        Long gameId = pokerEngine.startGame(startGameDTO);
-        startGameDTO.setGameId(gameId);
-        return ResponseEntity.ok(startGameDTO);
+        // pobrac userow z userservice
+        return ResponseEntity.ok(pokerEngine.startGame(startGameDTO));
     }
 
     @PostMapping("/start-round")
@@ -37,13 +36,5 @@ public class PokerController {
     public ResponseEntity<List<CardDTO>> draw(@RequestBody DrawDTO drawDTO) throws DeckNotFoundException {
         List<CardDTO> pack = pokerEngine.getCards(drawDTO);
         return ResponseEntity.ok(pack);
-    }
-
-    @GetMapping("/xxxxx")
-    public ResponseEntity<List<CardDTO>> xxxxx() {
-        System.out.println("xxxxx");
-        System.out.println("xxxxx");
-        System.out.println("xxxxx");
-        return ResponseEntity.ok(null);
     }
 }
