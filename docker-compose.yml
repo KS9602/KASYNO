@@ -11,8 +11,8 @@ services:
       POSTGRES_DB: auth_db
       POSTGRES_USER: auth_user
       POSTGRES_PASSWORD: auth_pass
-    volumes:
-      - auth_data:/var/lib/postgresql/data
+    # volumes:
+    #   - auth_data:/var/lib/postgresql/data
     networks: 
       - backend_network
 
@@ -24,8 +24,8 @@ services:
       POSTGRES_DB: gs_db
       POSTGRES_USER: gs_user
       POSTGRES_PASSWORD: gs_pass
-    volumes:
-      - gs_data:/var/lib/postgresql/data
+    # volumes:
+    #   - gs_data:/var/lib/postgresql/data
     networks: 
       - backend_network
 
@@ -36,8 +36,8 @@ services:
       POSTGRES_DB: user_db
       POSTGRES_USER: user_user
       POSTGRES_PASSWORD: user_pass
-    volumes:
-      - user_data:/var/lib/postgresql/data
+    # volumes:
+    #   - user_data:/var/lib/postgresql/data
     networks: 
       - backend_network
 
@@ -55,6 +55,9 @@ services:
         condition: service_started
     networks: 
       - backend_network
+    environment:
+      SECRET_KEY: "5367566859703373367639792F423F452848284D6251655468576D5A71347437"
+    
 
 
   api-gateway:
@@ -76,9 +79,9 @@ services:
       - "7779:8080"
     environment:
       SECRET_KEY: "5367566859703373367639792F423F452848284D6251655468576D5A71347437"
-      EXP: 3600000
-      EXP_REFRESH: 360000
-      EXP_ACCESS: 30000
+      EXP: 360000000
+      EXP_REFRESH: 36000000
+      EXP_ACCESS: 3000000
       iss: "auth-service"
       aud: "api-gateway"
       KAFKA_USERS_TOPIC: users
@@ -145,7 +148,7 @@ services:
       KAFKA_LOG4J_LOGGERS: "kafka=OFF,org.apache.kafka=OFF,kafka.network.RequestChannel$=OFF,kafka.producer.async.DefaultEventHandler=OFF"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/var/lib/kafka/data  # Store Kafka logs on your local machine.
+      - ./data:/var/lib/kafka/data  
 
 
   nginx:
@@ -169,10 +172,10 @@ services:
       - backend_network
 
 
-volumes:
-  auth_data:
-  gs_data:
-  user_data:
+# volumes:
+  # auth_data:
+  # gs_data:
+  # user_data:
 
 networks:
   backend_network:

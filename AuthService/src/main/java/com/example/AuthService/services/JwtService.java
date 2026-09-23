@@ -28,8 +28,9 @@ public class JwtService {
 
     private final ConfigProperties configProperties;
 
-    public String generateToken(String username, TokenType tokenType) {
+    public String generateToken(String username, Long userId, TokenType tokenType) {
         Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
         return createToken(claims, username, tokenType);
     }
 
@@ -53,6 +54,9 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+    public Long extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", Long.class));
     }
 
     public Date extractExpiration(String token) {

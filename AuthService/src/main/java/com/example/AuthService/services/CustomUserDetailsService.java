@@ -2,6 +2,7 @@ package com.example.AuthService.services;
 
 import com.example.AuthService.entities.BaseUserModel;
 import com.example.AuthService.repositories.BaseUserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -16,28 +17,18 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final BaseUserRepository repository;
 
-    @Autowired
-    public CustomUserDetailsService(BaseUserRepository repository, PasswordEncoder encoder) {
-        this.repository = repository;
-    }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<BaseUserModel> userInfo = repository.findByUsername(username);
-
-        if (userInfo.isEmpty()) {
-            throw new UsernameNotFoundException("User not found with email: " + username);
-        }
-
-        BaseUserModel user = userInfo.get();
-
-        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        return new User(user.getUsername(), user.getPassword(), authorities);
+        return repository.findByUsername(username)
+                .orElseThrow(() ->
+                        new UsernameNotFoundException("User not found: " + username)
+                );
     }
 
 

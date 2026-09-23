@@ -1,17 +1,18 @@
 package com.example.GameService.entities;
 
+import com.example.GameService.enums.CardLocation;
+import com.example.GameService.enums.CardSuit;
+import com.example.GameService.enums.CardType;
+import jakarta.persistence.*;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
-import java.util.UUID;
-
-@Table(name = "card")
 @Entity
-@Setter
+@Table(name = "cards")
 @Getter
+@Setter
 @NoArgsConstructor
 public class CardModel {
 
@@ -19,23 +20,18 @@ public class CardModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "card_id")
-    private UUID cardId;
+    @Enumerated(EnumType.STRING)
+    private CardSuit suit;
 
-    @Column(name = "round_id")
-    private Long roundId;
+    @Enumerated(EnumType.STRING)
+    private CardType type;
 
-    @Column(name = "game_id")
     private Long gameId;
 
-    @Column(name = "rank")
-    private String rank;
+    private Long playerId;
 
-    @Column(name = "color")
-    private String color;
+    private CardLocation location;
 
-    @Column(name = "is_draved")
-    @ColumnDefault(value = "false")
-    private boolean isDraved;
-
+    @Column(name = "deck_position")
+    private Integer deckPosition;
 }
