@@ -1,31 +1,36 @@
-# Platforma gier kasynowych
+# Kasyno – platforma do gry w Makao
 
-> Projekt w trakcie rozwoju.
+Aplikacja webowa, w której zalogowani użytkownicy mogą tworzyć pokoje i grać ze sobą
+online w karcianą grę Makao.
 
-Platforma gier kasynowych – aplikacja webowa zbudowana w architekturze
-mikroserwisowej.
+
+## Z czego to jest zbudowane
+
+Projekt jest podzielony na kilka niezależnych serwisów:
+
+- **API Gateway** – przyjmuje wszystkie zapytania z frontendu i kieruje je dalej.
+- **Auth Service** – logowanie, rejestracja, tokeny.
+- **User Service** – dane użytkowników.
+- **Game Service** – pokoje i cała logika gry w Makao.
+- **frontend** – aplikacja w Angularze.
+
+Serwisy komunikują się ze sobą przez REST, WebSocket (żeby gra aktualizowała się na
+żywo) i Kafkę (przekazywanie zdarzeń między Auth Service a User Service). Każdy
+serwis ma swoją bazę danych.
 
 ## Technologie
 
-- Java 21
-- Spring Boot
-- Spring Security
-- Spring WebFlux
-- JWT
-- Apache Kafka
-- PostgreSQL
-- Redis
-- Angular
-- Nginx
+- Java 21 + Spring Boot (backend)
+- Angular (frontend)
+- PostgreSQL (baza danych)
+- Redis (tokeny)
+- Kafka (komunikacja między serwisami)
 - Docker / Docker Compose
 
-## Architektura
+## Jak odpalić
 
-Frontend został zbudowany w Angularze i udostępniony przez Nginx.
-Komunikacja z backendem odbywa się przez API Gateway, który stanowi
-punkt wejścia do mikroserwisów.
+docker compose up --build
 
-APIGateway - Spring webflux. Odpowiada za sprawdzenie cookies i tokenów oraz przekierowywanie requestów do serwisów schowanych za gateway'em
-AuthService - Obsługa autentykacji użytkownika
-UserService - Zarządzanie użytkownikami
-GameService - Główna logika gier. Obecnie buduję moduł pokera
+
+Frontend wystartuje pod `http://localhost`, API pod `http://localhost:7777`.
+
