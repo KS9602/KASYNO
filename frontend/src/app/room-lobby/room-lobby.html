@@ -1,0 +1,14 @@
+@if (room(); as r) {
+  <div class="panel lobby">
+    <h2>{{ r.name }}</h2>
+    <p class="players">Gracze: <strong>{{ r.playersCount }} / {{ r.maxPlayers }}</strong></p>
+    <p>Status: <span class="badge" [class.badge-waiting]="r.status === 'WAITING'">{{ r.status }}</span></p>
+
+    <div class="actions">
+      <button type="button" (click)="startGame()">Rozpocznij grę</button>
+      <button type="button" class="secondary" (click)="leaveRoom()">Opuść pokój</button>
+    </div>
+  </div>
+} @else {
+  <p>Ładowanie pokoju...</p>
+}

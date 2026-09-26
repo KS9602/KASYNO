@@ -41,7 +41,7 @@ public class UserService {
         baseUserModel.setEmail(registerRequestDTO.email());
         baseUserModel.setPassword(passwordEncoder.encode(registerRequestDTO.password()));
         baseUserRepository.saveAndFlush(baseUserModel);
-        publishAddUserEvent(baseUserModel);
+//        publishAddUserEvent(baseUserModel);           // todo tymczasowo wylaczone
     }
 
     private void publishAddUserEvent(BaseUserModel baseUserModel) {

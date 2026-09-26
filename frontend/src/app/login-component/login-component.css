@@ -1,0 +1,26 @@
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    padding-top: 40px;
+}
+
+.auth-form {
+    width: 100%;
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.error {
+    color: var(--color-danger);
+    font-size: 13px;
+    margin-top: -6px;
+}
+
+.hint {
+    color: var(--color-text-muted);
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 0;
+}

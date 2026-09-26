@@ -1,24 +1,33 @@
-<form [formGroup]="loginForm" (ngSubmit)="login()">
+<div class="auth-wrapper">
+    <form class="panel auth-form" [formGroup]="loginForm" (ngSubmit)="login()">
+        <h2>Logowanie</h2>
 
-    <input
-        type="text"
-        formControlName="username"
-        placeholder="Nazwa gracza">
+        <input
+            type="text"
+            formControlName="username"
+            placeholder="Nazwa gracza">
+        @if (loginForm.controls.username.touched &&
+             loginForm.controls.username.hasError('required')) {
+            <span class="error">Nazwa użytkownika jest wymagana</span>
+        }
 
-    <input
-        type="password"
-        formControlName="password"
-        placeholder="Hasło">
+        <input
+            type="password"
+            formControlName="password"
+            placeholder="Hasło">
+        @if (loginForm.controls.password.touched &&
+             loginForm.controls.password.hasError('required')) {
+            <span class="error">Hasło jest wymagane</span>
+        }
+        @if (loginForm.controls.password.touched &&
+             loginForm.controls.password.hasError('minlength')) {
+            <span class="error">Hasło musi mieć minimum 8 znaków</span>
+        }
 
-    <button type="submit">
-        Zaloguj
-    </button>
-@if (loginForm.controls.username.touched &&
-     loginForm.controls.username.hasError('required')) {
-    <span>Nazwa użytkownika jest wymagana</span>
-}
-@if (loginForm.controls.password.touched &&
-     loginForm.controls.password.hasError('required')) {
-    <span>Hasło jest wymagane</span>
-}
-</form>
+        <button type="submit">
+            Zaloguj
+        </button>
+
+        <p class="hint">Nie masz konta? <a routerLink="/register">Zarejestruj się</a></p>
+    </form>
+</div>

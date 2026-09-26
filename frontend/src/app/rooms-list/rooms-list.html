@@ -1,0 +1,39 @@
+<div class="header-row">
+    <h2>Pokoje</h2>
+    <button type="button" (click)="loadRooms()">Odśwież</button>
+</div>
+
+<table>
+    <tr>
+        <th>Nazwa</th>
+        <th>Gracze</th>
+        <th>Status</th>
+        <th></th>
+    </tr>
+    @for (room of rooms(); track room.id) {
+        <tr>
+            <td>{{ room.name }}</td>
+            <td>{{ room.playersCount }} / {{ room.maxPlayers }}</td>
+            <td><span class="badge" [class.badge-waiting]="room.status === 'WAITING'">{{ room.status }}</span></td>
+            <td>
+                <button type="button" [disabled]="room.status !== 'WAITING'" (click)="joinRoom(room)">
+                    Dołącz
+                </button>
+            </td>
+        </tr>
+    } @empty {
+        <tr>
+            <td colspan="4" class="empty">Brak pokoi. Stwórz pierwszy poniżej.</td>
+        </tr>
+    }
+</table>
+
+<div class="panel create-panel">
+    <h3>Stwórz pokój</h3>
+    <form [formGroup]="createForm" (ngSubmit)="createRoom()">
+        <input type="text" formControlName="name" placeholder="Nazwa pokoju">
+        <input type="password" formControlName="password" placeholder="Hasło">
+        <input type="number" formControlName="maxPlayers" min="2" placeholder="Max graczy">
+        <button type="submit">Utwórz</button>
+    </form>
+</div>

@@ -1,7 +1,53 @@
 .card{
-    border-style: solid;
-    border-color: black;
-    width: 4rem;
-    height: 5rem;
-    
+    position: relative;
+    width: 4.5rem;
+    height: 6.5rem;
+    border-radius: 8px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    box-shadow: 0 2px 4px rgba(0,0,0,.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: white;
+    color: #111827;
+    user-select: none;
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.card:hover{
+    box-shadow: 0 4px 8px rgba(0,0,0,.2);
+}
+
+.card.red{
+    color: #dc2626;
+}
+
+.card.selected{
+    border-color: #2563eb;
+    border-width: 2px;
+    transform: translateY(-12px);
+    box-shadow: 0 6px 12px rgba(37,99,235,.35);
+}
+
+.suit{
+    font-size: 1.8rem;
+}
+
+.corner{
+    position: absolute;
+    font-size: .8rem;
+    font-weight: 700;
+    left: 6px;
+}
+
+.corner.top{
+    top: 4px;
+}
+
+.corner.bottom{
+    bottom: 4px;
+    transform: rotate(180deg);
+    left: auto;
+    right: 6px;
 }

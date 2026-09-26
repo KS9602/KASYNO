@@ -4,12 +4,13 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 
 import { RegisterService } from '../services/register-service'
 
 @Component({
   selector: 'app-register-component',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register-component.html',
   styleUrl: './register-component.css',
 })
@@ -17,6 +18,7 @@ export class RegisterComponent {
 
   private fb = inject(FormBuilder).nonNullable;
   private registerService = inject(RegisterService);
+  private router = inject(Router);
 
   registerForm = this.fb.group({
     username: ['', Validators.required],
@@ -30,10 +32,12 @@ export class RegisterComponent {
       this.registerForm.markAllAsTouched();
       return;
     }
-    console.log(this.registerForm.value);
     const form = this.registerForm.value;
     if(form.username && form.password && form.email){
-      this.registerService.register(form.username, form.password, form.email).subscribe({})
+      this.registerService.register(form.username, form.password, form.email).subscribe({
+        next: () => this.router.navigate(['/login']),
+        error: () => alert('Nie udało się zarejestrować')
+      })
     }
 
   }

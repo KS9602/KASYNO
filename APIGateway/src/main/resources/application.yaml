@@ -15,7 +15,14 @@ spring:
             - id: game-service
               uri: "http://game-service:8080"
               predicates:
-                - Path=/api/poker/**
+                - Path=/api/makao/**
+
+            - id: game-ws
+              uri: "ws://game-service:8080"
+              predicates:
+                - Path=/ws
+              filters:
+                - RewritePath=/ws, /api/makao/ws
 
             - id: user-service
               uri: "http://user-service:8080"

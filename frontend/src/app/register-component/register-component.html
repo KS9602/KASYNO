@@ -1,47 +1,50 @@
-<form [formGroup]="registerForm" (ngSubmit)="register()">
+<div class="auth-wrapper">
+    <form class="panel auth-form" [formGroup]="registerForm" (ngSubmit)="register()">
+        <h2>Rejestracja</h2>
 
-    <input
-        type="text"
-        formControlName="username"
-        placeholder="Nazwa gracza">
+        <input
+            type="text"
+            formControlName="username"
+            placeholder="Nazwa gracza">
+        @if (registerForm.controls.username.touched &&
+             registerForm.controls.username.hasError('required')) {
+            <span class="error">Nazwa użytkownika jest wymagana</span>
+        }
 
-    <input
-        type="password"
-        formControlName="password"
-        placeholder="Hasło">
+        <input
+            type="email"
+            formControlName="email"
+            placeholder="Email">
+        @if (registerForm.controls.email.touched &&
+             registerForm.controls.email.hasError('required')) {
+            <span class="error">Email jest wymagany</span>
+        }
+        @if (registerForm.controls.email.touched &&
+             registerForm.controls.email.hasError('email')) {
+            <span class="error">Niepoprawny adres email</span>
+        }
 
-    <input
-        type="password"
-        formControlName="password2"
-        placeholder="Powtórz hasło">
+        <input
+            type="password"
+            formControlName="password"
+            placeholder="Hasło">
+        @if (registerForm.controls.password.touched &&
+             registerForm.controls.password.hasError('required')) {
+            <span class="error">Hasło jest wymagane</span>
+        }
+        @if (registerForm.controls.password.hasError('minlength')) {
+            <span class="error">Hasło musi mieć minimum 8 znaków</span>
+        }
 
-    <input
-        type="email"
-        formControlName="email"
-        placeholder="Email">
+        <input
+            type="password"
+            formControlName="password2"
+            placeholder="Powtórz hasło">
 
-    <button type="submit">
-        Zarejestruj
-    </button>
-@if (registerForm.controls.username.touched &&
-     registerForm.controls.username.hasError('required')) {
-    <span>Nazwa użytkownika jest wymagana</span>
-}
-@if (registerForm.controls.email.touched &&
-     registerForm.controls.email.hasError('required')) {
-    <span>Email jest wymagany</span>
-}
+        <button type="submit">
+            Zarejestruj
+        </button>
 
-@if (registerForm.controls.email.touched &&
-     registerForm.controls.email.hasError('email')) {
-    <span>Niepoprawny adres email</span>
-}
-@if (registerForm.controls.password.touched &&
-     registerForm.controls.password.hasError('required')) {
-    <span>Hasło jest wymagane</span>
-}
-
-@if (registerForm.controls.password.hasError('minlength')) {
-    <span>Hasło musi mieć minimum 8 znaków</span>
-}
-</form>
+        <p class="hint">Masz już konto? <a routerLink="/login">Zaloguj się</a></p>
+    </form>
+</div>

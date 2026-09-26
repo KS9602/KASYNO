@@ -1,7 +1,7 @@
 package com.example.APIGateway.filters;
 
 import com.example.APIGateway.services.JwtService;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,6 +18,11 @@ import java.util.List;
 public class JwtAuthenticationWebFilter implements WebFilter {
 
     private final JwtService jwtService;
+    private final List<String> allowedPaths = List.of(
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/logout"
+    );
 
     public JwtAuthenticationWebFilter(JwtService jwtService) {
         this.jwtService = jwtService;
@@ -28,29 +33,36 @@ public class JwtAuthenticationWebFilter implements WebFilter {
 
         String path = exchange.getRequest().getURI().getPath();
 
-
-        if (path.startsWith("/api/auth/login") ||
-                path.startsWith("/api/auth/register") ||
-                path.startsWith("/api/auth/logout")) {
+        if(allowedPaths.contains(path)) {
             return chain.filter(exchange);
         }
 
-        String header = exchange.getRequest()
-                .getHeaders()
-                .getFirst(HttpHeaders.AUTHORIZATION);
+        String tokenType = path.equals("/api/auth/refresh") ? "refresh_token" : "access_token";   // wrzucic w configi
+        HttpCookie cookie = exchange.getRequest().getCookies().getFirst(tokenType);
+        if(cookie == null) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
 
-        if (header == null || !header.startsWith("Bearer ")) {
+        }
+        String token = cookie.getValue();
+        if (token.isEmpty()) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             return exchange.getResponse().setComplete();
         }
-
-        String token = header.substring(7);
-
-        if (!jwtService.validateToken(token)) {
+        if (Boolean.TRUE.equals(jwtService.isTokenExpired(token))) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            exchange.getResponse().getHeaders().add(
+                    "X-Auth-Error",
+                    "TOKEN_EXPIRED"
+            );
             return exchange.getResponse().setComplete();
         }
+
         String username = jwtService.extractUsername(token);
+        if(username == null) {
+            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+            return exchange.getResponse().setComplete();
+        }
         Authentication authentication =
                 new UsernamePasswordAuthenticationToken(
                         username,

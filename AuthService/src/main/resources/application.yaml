@@ -5,7 +5,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     database: POSTGRESQL
     properties:
       hibernate:
@@ -18,15 +18,15 @@ spring:
 
   kafka:
     consumer:
-      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS} # The consumer will connect to Kafka broker at this address
-      auto-offset-reset: earliest # Either earliest, latest or none.
+      bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
+      auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: com.example.UserService.kafka
     producer:
       bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
-      acks: -1 # Either 0,1 or -1. -1 waits for all replicas to acknowledge
+      acks: -1
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
@@ -53,6 +53,7 @@ auth:
   secret-key: ${SECRET_KEY}
   exp: ${EXP}
   exp-refresh: ${EXP_REFRESH}
+  exp-access: ${EXP_ACCESS}
   iss: ${iss}
   aud: ${aud}
 

@@ -31,7 +31,8 @@ public class SecurityConfig {
                         .pathMatchers(
                                 "/api/auth/login",
                                 "/api/auth/register",
-                                "/api/user/get"
+                                "/api/auth/logout"
+
                         ).permitAll()
 
                         .anyExchange().authenticated()

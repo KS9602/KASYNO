@@ -8,4 +8,5 @@ public enum ResponseMessage {
     BAD_REQUEST,
     UNAUTHORIZED,
     FORBIDDEN,
+    REFRESHED
 }
