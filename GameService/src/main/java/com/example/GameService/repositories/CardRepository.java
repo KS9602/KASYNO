@@ -11,6 +11,7 @@ public interface CardRepository extends JpaRepository<CardModel, Long> {
 
     List<CardModel> findAllByGameId(Long gameId);
     List<CardModel> findAllByPlayerIdAndGameId(Long playerId, Long gameId);
+    List<CardModel> findAllByPlayerIdAndGameIdAndLocation(Long playerId, Long gameId, CardLocation location);
     long countByGameIdAndPlayerIdAndLocation(
             Long gameId,
             Long playerId,
@@ -22,6 +23,8 @@ public interface CardRepository extends JpaRepository<CardModel, Long> {
     );
 
     Optional<CardModel> findFirstByGameIdAndLocationOrderByDeckPositionAsc(Long gameId, CardLocation cardLocation);
+
+    Optional<CardModel> findFirstByGameIdAndLocationOrderByDeckPositionDesc(Long gameId, CardLocation cardLocation);
 
     long countByGameIdAndLocation(Long gameId, CardLocation location);
 }

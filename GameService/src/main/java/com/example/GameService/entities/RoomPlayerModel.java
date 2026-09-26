@@ -33,4 +33,7 @@ public class RoomPlayerModel {
 
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
+
+    @Column(name = "called_makao", nullable = false)
+    private boolean calledMakao = false;
 }

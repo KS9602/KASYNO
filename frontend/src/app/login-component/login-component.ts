@@ -4,12 +4,13 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 
 import { LoginService } from '../services/login-service'
 
 @Component({
   selector: 'app-login-component',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './login-component.html',
   styleUrl: './login-component.css',
 })
@@ -17,6 +18,7 @@ export class LoginComponent {
 
   private fb = inject(FormBuilder).nonNullable;
   private loginService = inject(LoginService);
+  private router = inject(Router);
 
   loginForm = this.fb.group({
     username: ['', Validators.required],
@@ -28,10 +30,12 @@ export class LoginComponent {
       this.loginForm.markAllAsTouched();
       return;
     }
-    console.log(this.loginForm.value);
     const form = this.loginForm.value;
     if(form.username && form.password){
-      this.loginService.login(form.username, form.password).subscribe({})
+      this.loginService.login(form.username, form.password).subscribe({
+        next: () => this.router.navigate(['/rooms']),
+        error: () => alert('Nieprawidłowa nazwa użytkownika lub hasło')
+      })
     }
 
   }

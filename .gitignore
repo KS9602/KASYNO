@@ -25,10 +25,10 @@ target/
 # VS Code
 .vscode/
 
-# Logs
+# Logi
 *.log
 
-# OS
+# System operacyjny
 .DS_Store
 Thumbs.db
 
@@ -42,7 +42,7 @@ dist/
 .angular/
 .cache/
 
-# Angular environment files
+# Pliki środowiskowe Angulara
 src/environments/environment*.ts
 
 # npm
@@ -50,11 +50,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Coverage
+# Pokrycie testów
 coverage/
 
 # =========================
-# Environment / secrets
+# Zmienne środowiskowe / sekrety
 # =========================
 
 .env

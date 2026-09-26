@@ -1,35 +1,117 @@
-<button type="button" (click)="addPlayer()">
-    Dodaj nowego gracza
-</button>
+@if (state(); as s) {
 
-<form [formGroup]="formPlayers">
-    <div formArrayName="players">
-        @for(control of players.controls; track $index) {
-            <input
-                type="text"
-                [formControlName]="$index"
-                placeholder="Nazwa gracza">
-        }
+  <div class="status-bar panel">
+    <div>
+      <span class="label">Status</span>
+      <strong>{{ s.status }}</strong>
     </div>
-</form>
-<button (click)="startGame()">
-    Utwórz grę
-</button>
-<button type="button" (click)="startRound()">zacznij runde</button>
-<p>Runda: {{ roundIdS() }}</p>
+    <div>
+      <span class="label">Tura</span>
+      <strong [class.my-turn]="isMyTurn()">
+        @if (isMyTurn()) { Twoja tura! } @else { Gracz {{ s.currentPlayerId }} }
+      </strong>
+    </div>
+    @if (s.attackType !== 'NONE') {
+      <div>
+        <span class="label">Atak</span>
+        <strong class="danger">{{ s.attackType }} ({{ s.attackAmount }})</strong>
+      </div>
+    }
+    @if (s.requestedRank) {
+      <div>
+        <span class="label">Żądana ranga</span>
+        <strong class="info">{{ s.requestedRank }}</strong>
+      </div>
+    }
+    @if (s.requestedSuit) {
+      <div>
+        <span class="label">Żądany kolor</span>
+        <strong class="info">{{ s.requestedSuit }}</strong>
+      </div>
+    }
+    <div>
+      <span class="label">Talia</span>
+      <strong>{{ s.deckCardsCount }}</strong>
+    </div>
+  </div>
 
-<form [formGroup]="formDrawAmount">
-            <input
-            id="amount"
-            type="number"
-            min="1"
-            formControlName="amount">
-</form>
+  <div class="opponents">
+    @for (opponent of s.opponents; track opponent.playerId) {
+      <div class="opponent panel">
+        Gracz {{ opponent.playerId }} — {{ opponent.cardsCount }} kart
+      </div>
+    }
+  </div>
 
-<button type="button" (click)="draw()">dobierz karty</button>
+  <div class="table-felt">
+    <div class="cards-row">
+      @for (card of s.table; track card.id) {
+        <app-card [card]="card"></app-card>
+      }
+    </div>
+  </div>
 
-<div class="board">
-@for (card of cards(); track card.id) {
-  <app-card [card]="card"></app-card>
+  @if (lastSelectedCard()?.type === 'JACK') {
+    <label class="request-picker">
+      Żądana karta (opcjonalnie):
+      <select (change)="chosenRank.set($any($event.target).value || null)">
+        <option value="">brak</option>
+        @for (rank of nonFunctionalRanks; track rank) {
+          <option [value]="rank">{{ rank }}</option>
+        }
+      </select>
+    </label>
+  }
+
+  @if (lastSelectedCard()?.type === 'ACE') {
+    <label class="request-picker">
+      Żądany kolor:
+      <select (change)="chosenSuit.set($any($event.target).value || null)">
+        <option value="">brak</option>
+        @for (suit of suits; track suit) {
+          <option [value]="suit">{{ suit }}</option>
+        }
+      </select>
+    </label>
+  }
+
+  <div class="actions">
+    <button type="button" [disabled]="!isMyTurn() || !selectedCardIds().length" (click)="playSelected()">
+      Zagraj zaznaczone
+    </button>
+    <button type="button" [disabled]="!isMyTurn() || !!s.drawnCardId" (click)="draw()">
+      Dobierz
+    </button>
+    @if (s.drawnCardId) {
+      <button type="button" class="secondary" (click)="pass()">
+        Pasuj
+      </button>
+    }
+  </div>
+
+  <div class="my-cards">
+    <h3>Moje karty</h3>
+    <div class="cards-row">
+      @for (card of s.myCards; track card.id) {
+        <app-card
+          [card]="card"
+          [selected]="selectedCardIds().includes(card.id)"
+          (cardClick)="toggleCard($event)">
+        </app-card>
+      }
+    </div>
+  </div>
+
+  <div class="makao panel">
+    <button type="button" (click)="callMakao()">Makao!</button>
+
+    <input
+      type="number"
+      placeholder="ID gracza"
+      (input)="targetPlayerId.set($any($event.target).valueAsNumber || null)">
+    <button type="button" class="secondary" (click)="stopMakao()">Stop makao</button>
+  </div>
+
+} @else {
+  <p>Ładowanie gry...</p>
 }
-</div>

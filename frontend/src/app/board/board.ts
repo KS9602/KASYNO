@@ -1,92 +1,131 @@
-import { Component, inject, signal } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription, switchMap } from 'rxjs';
 
 import { Card } from '../card/card';
-import { CardModel } from '../models/card-model';
-import { BoardService } from '../services/board-service'
-import { CreateGameResponse } from '../models/create-game-response'
-import { StartRoundRequest } from '../models/start-round-request'
-
-
+import { CardResponse, CardSuit, CardType } from '../models/card-response';
+import { GameStateResponse } from '../models/game-state-response';
+import { GameService } from '../services/game-service';
+import { GameSocketService } from '../services/game-socket-service';
+import { AuthService } from '../services/auth-service';
 
 @Component({
   selector: 'app-board',
   standalone: true,
-  imports: [Card, ReactiveFormsModule],
+  imports: [Card],
   templateUrl: './board.html',
   styleUrl: './board.css'
 })
-export class Board {
+export class Board implements OnInit, OnDestroy {
 
-  private fb = inject(FormBuilder);
-  private boardService = inject(BoardService);
+  private route = inject(ActivatedRoute);
+  private gameService = inject(GameService);
+  private gameSocketService = inject(GameSocketService);
+  private authService = inject(AuthService);
 
-  formPlayers = this.fb.group({
-    players: this.fb.array<FormControl<string>>([])
-  })
-  get players(): FormArray<FormControl<string>>{
-    return this.formPlayers.get('players') as FormArray<FormControl<string>>
-  }
-  addPlayer(){
-    this.players.push(new FormControl('', { nonNullable: true }));
-  }
-  save(){
-    console.log(this.players.value)
-  }
+  private subscriptions: Subscription[] = [];
 
+  gameId = Number(this.route.snapshot.paramMap.get('gameId'));
+  myPlayerId = signal<number | null>(null);
+  state = signal<GameStateResponse | null>(null);
+  selectedCardIds = signal<number[]>([]);
+  chosenRank = signal<CardType | null>(null);
+  chosenSuit = signal<CardSuit | null>(null);
+  targetPlayerId = signal<number | null>(null);
 
-  formDrawAmount = this.fb.group({
-    amount: this.fb.control(1, { nonNullable:true })
-  })
-  get amount(): FormControl<number> {
-    return this.formDrawAmount.get("amount") as FormControl<number>;
-  }
+  nonFunctionalRanks: CardType[] = ['FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'TEN'];
+  suits: CardSuit[] = ['HEARTS', 'DIAMONDS', 'CLUBS', 'SPADES'];
 
+  isMyTurn = computed(() => this.state()?.currentPlayerId === this.myPlayerId());
 
-
-
-  cards = signal<CardModel[]>([]);
-  gameIdS = signal<number | null>(null);
-  roundIdS = signal<number | null>(null);
-
-
-startGame(): void{
-  this.boardService.startGame(this.players.value  as string[]).subscribe({
-    next: r => {
-      this.gameIdS.set(r.gameId)
+  lastSelectedCard = computed<CardResponse | null>(() => {
+    const ids = this.selectedCardIds();
+    if (!ids.length) {
+      return null;
     }
-  })
-}
+    const lastId = ids[ids.length - 1];
+    return this.state()?.myCards.find(c => c.id === lastId) ?? null;
+  });
 
-startRound(): void{
-  const gameId = this.gameIdS()
-  if(!gameId){
-    console.error("Game does not exist")
-    return;
+  ngOnInit(): void {
+    this.authService.whoAmI().subscribe(me => {
+      this.myPlayerId.set(me.id);
+      this.loadState();
+      this.connectSocket();
+    });
   }
-  this.boardService.startRound(gameId).subscribe({
-    next: r => {
-      this.roundIdS.set(r.roundId)
-    }
-  })
-  console.log("Runda: ",this.roundIdS())
-}
 
-draw(): void{
-  const gameId = this.gameIdS()
-  const roundId = this.roundIdS()
-  const amount = this.amount.value
-
-  if(!gameId || !roundId){
-    console.log("Error while drawing cards")
-    return;
+  ngOnDestroy(): void {
+    this.subscriptions.forEach(s => s.unsubscribe());
+    this.gameSocketService.disconnect();
   }
-  this.boardService.draw(gameId, roundId, amount).subscribe({
-    next: r => {
-      this.cards.set(r)
+
+  private loadState(): void {
+    this.gameService.getGameState(this.gameId).subscribe(state => this.state.set(state));
+  }
+
+  private connectSocket(): void {
+    const topic = `/topic/games/${this.gameId}/${this.myPlayerId()}`;
+    const sub = this.gameSocketService.connect().pipe(
+      switchMap(() => this.gameSocketService.subscribe<GameStateResponse>(topic))
+    ).subscribe(state => this.state.set(state));
+    this.subscriptions.push(sub);
+  }
+
+  toggleCard(card: CardResponse): void {
+    const ids = this.selectedCardIds();
+    if (ids.includes(card.id)) {
+      this.selectedCardIds.set(ids.filter(id => id !== card.id));
+    } else {
+      this.selectedCardIds.set([...ids, card.id]);
     }
-  })
+  }
 
-}
+  playSelected(): void {
+    const ids = this.selectedCardIds();
+    if (!ids.length) {
+      return;
+    }
+    this.gameService.playCards(this.gameId, ids, this.chosenRank(), this.chosenSuit()).subscribe({
+      next: state => {
+        this.state.set(state);
+        this.selectedCardIds.set([]);
+        this.chosenRank.set(null);
+        this.chosenSuit.set(null);
+      },
+      error: e => alert(e?.error?.message ?? 'Nie można zagrać tych kart')
+    });
+  }
 
+  draw(): void {
+    this.gameService.draw(this.gameId).subscribe({
+      next: state => this.state.set(state),
+      error: e => alert(e?.error?.message ?? 'Błąd dobierania kart')
+    });
+  }
+
+  pass(): void {
+    this.gameService.pass(this.gameId).subscribe({
+      next: state => this.state.set(state),
+      error: e => alert(e?.error?.message ?? 'Nie ma czego pasować')
+    });
+  }
+
+  callMakao(): void {
+    this.gameService.callMakao(this.gameId).subscribe({
+      next: state => this.state.set(state),
+      error: e => alert(e?.error?.message ?? 'Nie możesz teraz powiedzieć makao')
+    });
+  }
+
+  stopMakao(): void {
+    const targetId = this.targetPlayerId();
+    if (!targetId) {
+      return;
+    }
+    this.gameService.stopMakao(this.gameId, targetId).subscribe({
+      next: state => this.state.set(state),
+      error: e => alert(e?.error?.message ?? 'Błąd stop makao')
+    });
+  }
 }

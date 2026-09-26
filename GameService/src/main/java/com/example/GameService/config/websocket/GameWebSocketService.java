@@ -2,6 +2,7 @@ package com.example.GameService.config.websocket;
 
 import com.example.GameService.dto.game.GameResponse;
 import com.example.GameService.dto.game.GameStateResponse;
+import com.example.GameService.dto.room.RoomResponse;
 import com.example.GameService.entities.RoomPlayerModel;
 import com.example.GameService.repositories.RoomPlayerRepository;
 import com.example.GameService.services.GameService;
@@ -36,5 +37,13 @@ public class GameWebSocketService {
                     state
             );
         }
+    }
+
+    public void sendRoomUpdate(Long roomId, RoomResponse room) {
+        messagingTemplate.convertAndSend("/topic/rooms/" + roomId, room);
+    }
+
+    public void sendGameStarted(Long roomId, GameResponse game) {
+        messagingTemplate.convertAndSend("/topic/rooms/" + roomId + "/started", game);
     }
 }

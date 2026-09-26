@@ -2,9 +2,9 @@ package com.example.GameService.enums;
 
 public enum CardType {
 
-    TWO(false),
-    THREE(false),
-    FOUR(false),
+    TWO(true),
+    THREE(true),
+    FOUR(true),
     FIVE(false),
     SIX(false),
     SEVEN(false),

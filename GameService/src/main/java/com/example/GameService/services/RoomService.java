@@ -19,6 +19,7 @@ import com.example.GameService.config.security.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -37,6 +38,7 @@ public class RoomService {
     private final DeckService deckService;
     private final GameWebSocketService gameWebSocketService;
 
+    @Transactional
     public RoomResponse createRoom(
             CreateRoomRequest request,
             AuthenticatedUser player
@@ -73,6 +75,7 @@ public class RoomService {
     }
 
 
+    @Transactional
     public RoomResponse joinRoom(
             Long roomId,
             JoinRoomRequest request,
@@ -108,13 +111,17 @@ public class RoomService {
 
         addPlayer(roomId, player.playerId());
 
-        return new RoomResponse(
+        RoomResponse response = new RoomResponse(
                 room.getId(),
                 room.getName(),
                 players + 1,
                 room.getMaxPlayers(),
                 room.getStatus()
         );
+
+        gameWebSocketService.sendRoomUpdate(roomId, response);
+
+        return response;
     }
 
     public List<RoomResponse> getRooms() {
@@ -131,24 +138,31 @@ public class RoomService {
         return roomMapper.projectionToResponse(roomModel);
     }
 
+    @Transactional
     public void leaveRoom(Long roomId, AuthenticatedUser player) {
         roomPlayerRepository.deleteByRoomIdAndPlayerId(roomId, player.playerId());
     }
 
 
 
+    @Transactional
     public GameResponse startGame(Long roomId, AuthenticatedUser player) {
         RoomModel roomModel = roomRepository.findById(roomId).orElseThrow(() -> new RoomNotFoundException("Room not found"));
         if (!roomModel.getOwnerId().equals(player.playerId())) {
             throw new NotOwnerException("Only creator can start the game");
+        }
+        if (roomPlayerRepository.countByRoomId(roomId) < 2) {
+            throw new NotEnoughPlayersException("Need at least 2 players to start the game");
         }
         GameModel gameModel = gameService.startGame(roomId);
 
         roomModel.setStatus(RoomStatus.IN_GAME);
         roomRepository.save(roomModel);
 
+        GameResponse response = gameMapper.toResponse(gameModel);
+        gameWebSocketService.sendGameStarted(roomId, response);
         gameWebSocketService.sendGameUpdate(roomId, gameModel.getId());
-        return gameMapper.toResponse(gameModel);
+        return response;
     }
 
 }

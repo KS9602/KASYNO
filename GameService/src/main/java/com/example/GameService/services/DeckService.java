@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -61,20 +62,48 @@ public class DeckService {
     @Transactional
     public CardModel draw(Long gameId, Long playerId, CardLocation location) {
 
-        CardModel card = cardRepository
-                .findFirstByGameIdAndLocationOrderByDeckPositionAsc(
-                        gameId,
-                        CardLocation.DECK
-                )
-                .orElseThrow();
+        Optional<CardModel> deckTop = cardRepository
+                .findFirstByGameIdAndLocationOrderByDeckPositionAsc(gameId, CardLocation.DECK);
+
+        if (deckTop.isEmpty()) {
+            reshuffleDiscardPile(gameId);
+            deckTop = cardRepository
+                    .findFirstByGameIdAndLocationOrderByDeckPositionAsc(gameId, CardLocation.DECK);
+        }
+
+        CardModel card = deckTop.orElseThrow(() -> new IllegalStateException("No cards left to draw"));
 
         card.setLocation(location);
         card.setPlayerId(playerId);
         return cardRepository.save(card);
     }
 
+    @Transactional
+    public void reshuffleDiscardPile(Long gameId) {
+
+        List<CardModel> discardPile = cardRepository
+                .findAllByGameIdAndLocationOrderByDeckPositionAsc(gameId, CardLocation.TABLE);
+
+        if (discardPile.size() <= 1) {
+            return;
+        }
+
+        List<CardModel> toReshuffle = discardPile.subList(0, discardPile.size() - 1);
+
+        Collections.shuffle(toReshuffle);
+
+        for (int i = 0; i < toReshuffle.size(); i++) {
+            CardModel card = toReshuffle.get(i);
+            card.setLocation(CardLocation.DECK);
+            card.setPlayerId(null);
+            card.setDeckPosition(i);
+        }
+
+        cardRepository.saveAll(toReshuffle);
+    }
+
     public List<CardModel> getUserCards(Long gameId, Long playerId){
-        return cardRepository.findAllByPlayerIdAndGameId(playerId, gameId);
+        return cardRepository.findAllByPlayerIdAndGameIdAndLocation(playerId, gameId, CardLocation.HAND);
     }
 
     public List<CardModel> getAllGameCards(Long gameId, Long playerId){

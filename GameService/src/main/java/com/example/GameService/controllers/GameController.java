@@ -2,6 +2,7 @@ package com.example.GameService.controllers;
 
 
 import com.example.GameService.dto.game.GameResponse;
+import com.example.GameService.dto.game.GameStateResponse;
 import com.example.GameService.services.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -29,11 +30,11 @@ public class GameController extends BaseController {
         );
     }
     @GetMapping("/{gameId}/state")
-    public GameResponse getGameState(
+    public GameStateResponse getGameState(
             @PathVariable Long gameId,
             Authentication authentication
     ) {
-        return gameService.getGameState(
+        return gameService.getGameStateForPlayer(
                 gameId,
                 authPlayer(authentication)
         );

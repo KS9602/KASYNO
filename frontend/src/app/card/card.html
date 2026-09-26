@@ -1,4 +1,9 @@
-<div class="card">
-    <p>{{ card().rank }}</p>
-    <p>{{ card().color }}</p>
+<div
+    class="card"
+    [class.selected]="selected()"
+    [class.red]="isRed()"
+    (click)="onClick()">
+    <span class="corner top">{{ rankLabel() }}</span>
+    <span class="suit">{{ suitSymbol() }}</span>
+    <span class="corner bottom">{{ rankLabel() }}</span>
 </div>

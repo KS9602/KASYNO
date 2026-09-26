@@ -1,0 +1,43 @@
+:host {
+    display: block;
+}
+
+.lobby {
+    max-width: 420px;
+    margin: 40px auto 0;
+    text-align: center;
+}
+
+.players {
+    font-size: 16px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e2e8f0;
+    color: var(--color-text-muted);
+}
+
+.badge-waiting {
+    background: #dcfce7;
+    color: var(--color-success);
+}
+
+.actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.secondary {
+    background: #64748b;
+}
+
+.secondary:hover {
+    background: #475569;
+}

@@ -2,8 +2,10 @@ package com.example.AuthService.controllers;
 
 import com.example.AuthService.DTO.AccessTokenDTO;
 import com.example.AuthService.DTO.LoginRequestDTO;
+import com.example.AuthService.DTO.MeResponseDTO;
 import com.example.AuthService.DTO.RefreshTokenDTO;
 import com.example.AuthService.DTO.RegisterRequestDTO;
+import com.example.AuthService.entities.BaseUserModel;
 import com.example.AuthService.enums.ResponseMessage;
 import com.example.AuthService.exceptions.UsernameAlreadyExistsException;
 import com.example.AuthService.services.AuthService;
@@ -88,8 +90,9 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<Boolean> me() {
-        return ResponseEntity.ok(true);
+    public ResponseEntity<MeResponseDTO> me(Authentication authentication) {
+        BaseUserModel user = (BaseUserModel) authentication.getPrincipal();
+        return ResponseEntity.ok(new MeResponseDTO(user.getId(), user.getUsername()));
     }
 
 

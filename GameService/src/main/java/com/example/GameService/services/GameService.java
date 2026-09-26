@@ -38,8 +38,10 @@ public class GameService {
         GameModel gameModel = createGame(roomId);
         buildDeck(gameModel.getId());
         drawInitialCardsPlayers(roomId, gameModel.getId());
-        drawInitialCardsTable(gameModel.getId());
+        drawInitialCardsTable(gameModel);
+        resetMakaoFlags(roomId);
         gameModel.setStatus(GameStatus.IN_PROGRESS);
+        gameModel.setTurnPhase(TurnPhase.PLAY);
         gameRepository.saveAndFlush(gameModel);
         return gameModel;
     }
@@ -49,17 +51,25 @@ public class GameService {
         gameModel.setRoomId(roomId);
         gameModel.setGameNumber(1);
         gameModel.setStatus(GameStatus.WAITING);
+        gameModel.setTurnPhase(TurnPhase.STARTING);
         gameModel.setCurrentPlayerId(randomPlayerId(roomId));
         gameRepository.saveAndFlush(gameModel);
         return gameModel;
+    }
+
+    private void resetMakaoFlags(Long roomId) {
+        List<RoomPlayerModel> roomPlayers = roomPlayerRepository.findAllByRoomId(roomId);
+        roomPlayers.forEach(rp -> rp.setCalledMakao(false));
+        roomPlayerRepository.saveAll(roomPlayers);
     }
 
     public GameResponse getGame(Long gameId, AuthenticatedUser player) {
         return gameMapper.toResponse(findAuthorizedGame(gameId, player));
     }
 
-    public GameResponse getGameState(Long gameId, AuthenticatedUser player) {
-        return gameMapper.toResponse(findAuthorizedGame(gameId, player));
+    public GameStateResponse getGameStateForPlayer(Long gameId, AuthenticatedUser player) {
+        GameModel game = findAuthorizedGame(gameId, player);
+        return getGameStateForPlayer(game.getRoomId(), gameId, player.playerId());
     }
 
     private GameModel findAuthorizedGame(Long gameId, AuthenticatedUser player) {
@@ -92,6 +102,9 @@ public class GameService {
         if (!roomPlayerRepository.existsByRoomIdAndPlayerId(roomId, playerId)) {
             throw new GameNotFoundException("Player not found");
         }
+        GameModel game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new GameNotFoundException("Game not found: " + gameId));
+
         List<CardResponse> cards = deckService
                 .getUserCards(gameId, playerId)
                 .stream()
@@ -110,7 +123,14 @@ public class GameService {
                 getOponentsCardsAmount(roomId, gameId, playerId),
                 playedCards,
                 playedCards.size(),
-                deckService.getCountByGameIdAndLocation(gameId, CardLocation.DECK)
+                deckService.getCountByGameIdAndLocation(gameId, CardLocation.DECK),
+                game.getStatus(),
+                game.getCurrentPlayerId(),
+                game.getAttackType(),
+                game.getAttackAmount(),
+                game.getRequestedRank(),
+                game.getRequestedSuit(),
+                playerId.equals(game.getCurrentPlayerId()) ? game.getDrawnCardId() : null
         );
     }
 
@@ -131,18 +151,24 @@ public class GameService {
     public void drawInitialCardsPlayers(Long roomId, Long gameId) {
         List<RoomPlayerModel> playerModels = roomPlayerRepository.findAllByRoomId(roomId);
         for (RoomPlayerModel playerModel : playerModels) {
-            for(int i = 0; i < 4; i++){
+            for(int i = 0; i < 5; i++){
                 deckService.draw(gameId, playerModel.getPlayerId(), CardLocation.HAND);
             }
         }
     }
-    public void drawInitialCardsTable(Long gameId) {
-        long count = deckService.getCountByGameIdAndLocation(gameId, CardLocation.DECK);
+    public void drawInitialCardsTable(GameModel gameModel) {
+        long count = deckService.getCountByGameIdAndLocation(gameModel.getId(), CardLocation.DECK);
+        CardModel lastCard = null;
         for(int i = 0; i < count; i++){
-            CardModel card = deckService.draw(gameId, null, CardLocation.TABLE);
+            CardModel card = deckService.draw(gameModel.getId(), null, CardLocation.TABLE);
+            lastCard = card;
             if(!card.getType().isFunctional()){
                 break;
             }
+        }
+        if (lastCard != null) {
+            gameModel.setLastRank(lastCard.getType());
+            gameModel.setLastSuit(lastCard.getSuit());
         }
     }
 

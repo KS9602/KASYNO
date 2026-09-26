@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Getter
 @Setter
-@ConfigurationProperties()
+@ConfigurationProperties(prefix = "auth")
 @Component
 public class ConfigProperties {
     private String secretKey;
